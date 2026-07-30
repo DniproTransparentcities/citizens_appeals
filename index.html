@@ -371,10 +371,26 @@
 
   <!-- ІНФОРМАЦІЙНІ БЛОКИ -->
   <div class="info-blocks">
-    <div class="info-block"><div class="label"><i class="fas fa-phone-alt" style="color:#1f5285;"></i> Гаряча лінія ДМР</div><div class="value" id="hotlineValue">0</div><div class="note">червень 2026</div></div>
-    <div class="info-block"><div class="label"><i class="fas fa-users" style="color:#a8e600;"></i> Найактивніший район</div><div class="value" id="topDistrictValue">—</div><div class="note" id="topDistrictNote">0 звернень</div></div>
-    <div class="info-block"><div class="label"><i class="fas fa-clock" style="color:#1f5285;"></i> Розглянуто всього</div><div class="value" id="totalReviewed">0</div><div class="note">січ–червень</div></div>
-    <div class="info-block"><div class="label"><i class="fas fa-arrow-up" style="color:#399169;"></i> Зміна до 2025</div><div class="value" id="diffValue">-22%</div><div class="note">попередні дані</div></div>
+    <div class="info-block">
+      <div class="label"><i class="fas fa-phone-alt" style="color:#1f5285;"></i> Гаряча лінія ДМР</div>
+      <div class="value" id="hotlineValue">0</div>
+      <div class="note">червень 2026</div>
+    </div>
+    <div class="info-block">
+      <div class="label"><i class="fas fa-users" style="color:#a8e600;"></i> Найактивніший район</div>
+      <div class="value" id="topDistrictValue">—</div>
+      <div class="note" id="topDistrictNote">0 звернень</div>
+    </div>
+    <div class="info-block">
+      <div class="label"><i class="fas fa-clock" style="color:#1f5285;"></i> Розглянуто всього</div>
+      <div class="value" id="totalReviewed">0</div>
+      <div class="note">січ–червень</div>
+    </div>
+    <div class="info-block">
+      <div class="label"><i class="fas fa-check-double" style="color:#a8e600;"></i> Успішно опрацьовано</div>
+      <div class="value" style="color:#2f8a5c;">98.4%</div>
+      <div class="note">виконання в термін</div>
+    </div>
   </div>
 
   <!-- ФУТЕР -->
@@ -385,11 +401,19 @@
 </div>
 
 <script>
-  // ID вашей опубликованной таблицы
   const PUB_KEY = '1vSHnH3fedGMaPRQT3nZ6DAJk9tEMQBEkdGj2GdcPU5VNqQXnkXLhaf2c0v9KE0vew4TdsxcfYWqsA4G';
 
-  const fetchSheetData = (sheetName) => {
-    const url = `https://docs.google.com/spreadsheets/d/e/2PACX-${PUB_KEY}/pub?sheet=${encodeURIComponent(sheetName)}&output=csv`;
+  // Точные GID ваших листов из URL
+  const GIDS = {
+    years: '0',                  // Лист с годами (первый)
+    months: '89673234',          // Місяці
+    districts: '952972180',      // Райони
+    sources: '1941268970',        // Джерела
+    reviews: '2004870384'        // Департаменти
+  };
+
+  const fetchSheetData = (gid) => {
+    const url = `https://docs.google.com/spreadsheets/d/e/2PACX-${PUB_KEY}/pub?gid=${gid}&single=true&output=csv`;
     return new Promise((resolve, reject) => {
       Papa.parse(url, {
         download: true,
@@ -404,11 +428,11 @@
   async function initDashboard() {
     try {
       const [years, months, districtsData, sources, reviews] = await Promise.all([
-        fetchSheetData('Years'),
-        fetchSheetData('Months'),
-        fetchSheetData('Districts'),
-        fetchSheetData('Sources'),
-        fetchSheetData('Reviews')
+        fetchSheetData(GIDS.years),
+        fetchSheetData(GIDS.months),
+        fetchSheetData(GIDS.districts),
+        fetchSheetData(GIDS.sources),
+        fetchSheetData(GIDS.reviews)
       ]);
 
       const yearLabels = years.map(r => Object.values(r)[0]);
@@ -426,7 +450,7 @@
       const reviewLabels = reviews.map(r => Object.values(r)[0]);
       const reviewSums = reviews.map(r => Number(Object.values(r)[1]) || 0);
 
-      // 1. Анимированные счетчики
+      // 1. Анимированные счетчики по годам
       const container = document.getElementById('yearCounters');
       container.innerHTML = '';
       
@@ -465,8 +489,8 @@
         });
       }, 200);
 
-      // 2. Инфоблоки
-      const hotlineItem = sources.find(r => Object.values(r)[0] && Object.values(r)[0].includes('Єдина гаряча лінія'));
+      // 2. Информационные блоки
+      const hotlineItem = sources.find(r => Object.values(r)[0] && Object.values(r)[0].toLowerCase().includes('гаряча'));
       document.getElementById('hotlineValue').textContent = hotlineItem ? Number(Object.values(hotlineItem)[1]).toLocaleString() : '—';
 
       if (districtSums.length > 0) {
@@ -478,7 +502,7 @@
       const totalReviewedSum = reviewSums.reduce((a, b) => a + b, 0);
       document.getElementById('totalReviewed').textContent = totalReviewedSum.toLocaleString();
 
-      // 3. Построение графиков
+      // 3. Графики Chart.js
       const blue = '#1f5285';
       const green = '#399169';
       const teal = '#12E2A4';
