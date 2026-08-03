@@ -540,10 +540,11 @@
         }
       });
 
-      const pieColors = [blue, green, lime, teal, '#5cb085', '#a8dbbc'];
+      // Палитра цветов (добавлен седьмой цвет для категории "Інші")
+      const pieColors = [blue, green, lime, teal, '#5cb085', '#a8dbbc', '#e2a412'];
       new Chart(document.getElementById('sourcePieChart'), {
         type: 'pie',
-        data: { labels: sourceLabels.slice(0, 6), datasets: [{ data: sourceSums.slice(0, 6), backgroundColor: pieColors, borderWidth: 0 }] },
+        data: { labels: sourceLabels, datasets: [{ data: sourceSums, backgroundColor: pieColors, borderWidth: 0 }] },
         options: {
           responsive: true,
           maintainAspectRatio: false,
