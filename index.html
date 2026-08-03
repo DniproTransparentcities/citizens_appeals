@@ -342,7 +342,7 @@
       <h3><i class="fas fa-chart-line"></i> 2026: помісячно</h3>
       <div class="subhead">січень – липень (попередньо)</div>
       <div class="chart-container"><canvas id="monthChart"></canvas></div>
-      <div class="footnote">* — поточна кількість</div>
+      <div class="footnote">* липень — поточна кількість</div>
     </div>
   </div>
 
@@ -382,9 +382,9 @@
       <div class="note" id="topDistrictNote">0 звернень</div>
     </div>
     <div class="info-block">
-      <div class="label"><i class="fas fa-clock" style="color:#1f5285;"></i> Розглянуто всього</div>
+      <div class="label"><i class="fas fa-clock" style="color:#1f5285;"></i> Всього звернень 2026</div>
       <div class="value" id="totalReviewed">0</div>
-      <div class="note">січень–червень</div>
+      <div class="note" id="totalReviewedNote">за всі місяці</div>
     </div>
     <div class="info-block">
       <div class="label"><i class="fas fa-check-double" style="color:#a8e600;"></i> Успішно опрацьовано</div>
@@ -413,6 +413,8 @@
     reviews: '2004870384'        // Департаменти
   };
 
+  const parseNum = (val) => Number(String(val || 0).replace(/\s+/g, '').replace(',', '.')) || 0;
+
   const fetchSheetData = (gid) => {
     const url = `https://docs.google.com/spreadsheets/d/e/2PACX-${PUB_KEY}/pub?gid=${gid}&single=true&output=csv`;
     return new Promise((resolve, reject) => {
@@ -437,19 +439,19 @@
       ]);
 
       const yearLabels = years.map(r => Object.values(r)[0]);
-      const yearData = years.map(r => Number(Object.values(r)[1]) || 0);
+      const yearData = years.map(r => parseNum(Object.values(r)[1]));
 
       const monthLabels = months.map(r => Object.values(r)[0]);
-      const monthValues = months.map(r => Number(Object.values(r)[1]) || 0);
+      const monthValues = months.map(r => parseNum(Object.values(r)[1]));
 
       const districtLabels = districtsData.map(r => Object.values(r)[0]);
-      const districtSums = districtsData.map(r => Number(Object.values(r)[1]) || 0);
+      const districtSums = districtsData.map(r => parseNum(Object.values(r)[1]));
 
       const sourceLabels = sources.map(r => Object.values(r)[0]);
-      const sourceSums = sources.map(r => Number(Object.values(r)[1]) || 0);
+      const sourceSums = sources.map(r => parseNum(Object.values(r)[1]));
 
       const reviewLabels = reviews.map(r => Object.values(r)[0]);
-      const reviewSums = reviews.map(r => Number(Object.values(r)[1]) || 0);
+      const reviewSums = reviews.map(r => parseNum(Object.values(r)[1]));
 
       // 1. Анимированные счетчики по годам
       const container = document.getElementById('yearCounters');
@@ -492,7 +494,7 @@
 
       // 2. Информационные блоки
       const hotlineItem = sources.find(r => Object.values(r)[0] && Object.values(r)[0].toLowerCase().includes('гаряча'));
-      document.getElementById('hotlineValue').textContent = hotlineItem ? Number(Object.values(hotlineItem)[1]).toLocaleString() : '—';
+      document.getElementById('hotlineValue').textContent = hotlineItem ? parseNum(Object.values(hotlineItem)[1]).toLocaleString() : '—';
 
       if (districtSums.length > 0) {
         const maxDistIndex = districtSums.indexOf(Math.max(...districtSums));
@@ -500,8 +502,14 @@
         document.getElementById('topDistrictNote').textContent = `${districtSums[maxDistIndex].toLocaleString()} звернень`;
       }
 
-      const totalReviewedSum = reviewSums.reduce((a, b) => a + b, 0);
-      document.getElementById('totalReviewed').textContent = totalReviewedSum.toLocaleString();
+      // 💥 РАСЧЕТ СУММЫ ВСЕХ МЕСЯЦЕВ
+      const totalMonthsSum = monthValues.reduce((a, b) => a + b, 0);
+      document.getElementById('totalReviewed').textContent = totalMonthsSum.toLocaleString();
+      if (monthLabels.length > 0) {
+        const firstMonth = monthLabels[0];
+        const lastMonth = monthLabels[monthLabels.length - 1];
+        document.getElementById('totalReviewedNote').textContent = `${firstMonth.toLowerCase()}–${lastMonth.toLowerCase()}`;
+      }
 
       // 3. Графики Chart.js
       const blue = '#1f5285';
@@ -540,7 +548,6 @@
         }
       });
 
-      // Палитра цветов (добавлен седьмой цвет для категории "Інші")
       const pieColors = [blue, green, lime, teal, '#5cb085', '#a8dbbc', '#e2a412'];
       new Chart(document.getElementById('sourcePieChart'), {
         type: 'pie',
