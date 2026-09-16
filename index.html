@@ -335,12 +335,12 @@
   <div class="chart-grid">
     <div class="chart-box">
       <h3><i class="fas fa-chart-bar"></i> Динаміка по роках</h3>
-      <div class="subhead">2017–2026 (липень)</div>
+      <div class="subhead"><span id="yearRangeLabel">2017–2026</span> (<span id="yearSubheadMonth">липень</span>)</div>
       <div class="chart-container"><canvas id="yearChart"></canvas></div>
     </div>
     <div class="chart-box">
       <h3><i class="fas fa-chart-line"></i> 2026: помісячно</h3>
-      <div class="subhead">січень – липень</div>
+      <div class="subhead"><span id="monthFirstLabel">січень</span> – <span id="monthLastLabel">липень</span></div>
       <div class="chart-container"><canvas id="monthChart"></canvas></div>
       <div class="footnote"></div>
     </div>
@@ -350,12 +350,12 @@
   <div class="chart-grid">
     <div class="chart-box">
       <h3><i class="fas fa-map-pin"></i> Райони (горизонтально)</h3>
-      <div class="subhead">сумарно січень–липень 2026</div>
+      <div class="subhead">сумарно <span id="districtFirstLabel">січень</span>–<span id="districtLastLabel">липень</span> 2026</div>
       <div class="chart-container"><canvas id="districtHorizChart"></canvas></div>
     </div>
     <div class="chart-box">
       <h3><i class="fas fa-inbox"></i> Джерела надходжень</h3>
-      <div class="subhead">січень–липень 2026</div>
+      <div class="subhead"><span id="sourceFirstLabel">січень</span>–<span id="sourceLastLabel">липень</span> 2026</div>
       <div class="chart-container pie"><canvas id="sourcePieChart"></canvas></div>
     </div>
   </div>
@@ -364,7 +364,7 @@
   <div class="chart-grid full-width">
     <div class="chart-box" style="grid-column: 1 / -1;">
       <h3><i class="fas fa-check-circle"></i> Розгляд виконавчими органами</h3>
-      <div class="subhead">січень – липень 2026 (сумарно)</div>
+      <div class="subhead"><span id="reviewFirstLabel">січень</span> – <span id="reviewLastLabel">липень</span> 2026 (сумарно)</div>
       <div class="chart-container" style="height:clamp(150px, 24vw, 190px);"><canvas id="reviewChart"></canvas></div>
     </div>
   </div>
@@ -374,7 +374,7 @@
     <div class="info-block">
       <div class="label"><i class="fas fa-phone-alt" style="color:#1f5285;"></i> Гаряча лінія ДМР</div>
       <div class="value" id="hotlineValue">0</div>
-      <div class="note">липень 2026</div>
+      <div class="note" id="hotlineNote">липень 2026</div>
     </div>
     <div class="info-block">
       <div class="label"><i class="fas fa-users" style="color:#a8e600;"></i> Найактивніший район</div>
@@ -395,7 +395,7 @@
 
   <!-- ФУТЕР -->
   <div class="footer">
-    <span><i class="fas fa-database"></i> Дані оновлено: липень 2026 (частково)</span>
+    <span><i class="fas fa-database"></i> Дані оновлено: <span id="footerMonthLabel">липень</span> 2026 (частково)</span>
     <span><i class="fas fa-rozrob"></i> Розроблено КП «ІНФО-РАДА-ДНІПРО»</span>
     <span><i class="fas fa-city"></i> Дніпровська міська рада — відкриті дані</span>
   </div>
@@ -452,6 +452,33 @@
 
       const reviewLabels = reviews.map(r => Object.values(r)[0]);
       const reviewSums = reviews.map(r => parseNum(Object.values(r)[1]));
+
+      // 0. Динамічні назви першого/останнього місяця (і першого/останнього року)
+      //    беруться напряму з таблиці — якщо в лист місяців додати серпень,
+      //    усі підзаголовки і футер оновляться самі.
+      if (monthLabels.length > 0) {
+        const firstMonthRaw = String(monthLabels[0] || '').trim();
+        const lastMonthRaw = String(monthLabels[monthLabels.length - 1] || '').trim();
+        const firstMonth = firstMonthRaw.toLowerCase();
+        const lastMonth = lastMonthRaw.toLowerCase();
+
+        document.getElementById('monthFirstLabel').textContent = firstMonth;
+        document.getElementById('monthLastLabel').textContent = lastMonth;
+        document.getElementById('districtFirstLabel').textContent = firstMonth;
+        document.getElementById('districtLastLabel').textContent = lastMonth;
+        document.getElementById('sourceFirstLabel').textContent = firstMonth;
+        document.getElementById('sourceLastLabel').textContent = lastMonth;
+        document.getElementById('reviewFirstLabel').textContent = firstMonth;
+        document.getElementById('reviewLastLabel').textContent = lastMonth;
+        document.getElementById('yearSubheadMonth').textContent = lastMonth;
+        document.getElementById('footerMonthLabel').textContent = lastMonth;
+        document.getElementById('hotlineNote').textContent = `${lastMonth} 2026`;
+      }
+
+      if (yearLabels.length > 0) {
+        document.getElementById('yearRangeLabel').textContent =
+          `${yearLabels[0]}–${yearLabels[yearLabels.length - 1]}`;
+      }
 
       // 1. Анимированные счетчики по годам
       const container = document.getElementById('yearCounters');
